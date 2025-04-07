@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zizisuo.mapper.ImageMapper">
+    <insert id="add">
+        insert into image(name, per_url, post_url, create_time, update_time, create_user, update_user, markings, other)
+        VALUES
+        (#{name},#{perUrl},#{postUrl},#{createTime},#{updateTime},#{createUser},#{updateUser},#{markings},#{other})
+    </insert>
+
+    <update id="update">
+        update image
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="markings != null">markings = #{markings},</if>
+            <if test="other != null">other = #{other},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <select id="list" resultType="com.zizisuo.pojo.Image">
+            select * from image
+            <where>
+                <if test="name != null"> and name like concat('%',#{name},'%') </if>
+                <if test="markings != null"> and markings like concat('%',#{markings},'%') </if>
+                <if test="createUser != null"> and create_user like concat('%',#{createUser},'%') </if>
+                <if test="begin != null and end != null">and create_time between #{begin} and #{end}</if>
+            </where>
+            order by create_time desc
+    </select>
+
+    <select id="getById" resultType="com.zizisuo.pojo.Image">
+        select * from image where id = #{id}
+    </select>
+    <select id="getDataList" resultType="com.zizisuo.pojo.Image">
+        SELECT *
+        FROM image
+        <where>
+            <choose>
+                <!-- 如果 begin 和 end 都为空，默认查询当天的数据 -->
+                <when test="begin == null and end == null">
+                    AND DATE(create_time) = CURDATE()
+                </when>
+                <!-- 如果只有 begin 不为空，查询从 begin 开始的数据 -->
+                <when test="begin != null and end == null">
+                    AND create_time &gt;= #{begin}
+                </when>
+                <!-- 如果只有 end 不为空，查询到 end 结束的数据 -->
+                <when test="begin == null and end != null">
+                    AND create_time &lt;= #{end}
+                </when>
+                <!-- 如果 begin 和 end 都不为空，查询日期范围内的数据 -->
+                <otherwise>
+                    AND create_time &gt;= #{begin}
+                    AND create_time &lt;= #{end}
+                </otherwise>
+            </choose>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+</mapper>
